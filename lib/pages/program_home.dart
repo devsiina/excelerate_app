@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/program_provider.dart';
+import '../models/program_model.dart';
+import '../utils/result.dart'; // Import from the same location as repositories
 
 class ProgramHome extends StatefulWidget {
   const ProgramHome({super.key});
@@ -9,83 +13,215 @@ class ProgramHome extends StatefulWidget {
 class _ProgramHomeState extends State<ProgramHome> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  final Map<String, List<Map<String, dynamic>>> courseData = {
-    "All": [
-      {"title": "Full-Stack Bootcamp", "instructor": "Dr. Angela Yu", "rating": 4.7, "students": "1,503,573"},
-      {"title": "Angular - Complete Guide", "instructor": "Maximilian", "rating": 4.7, "students": "839,363"},
-      {"title": "React & Next.js Mastery", "instructor": "Jonas", "rating": 4.7, "students": "148,106"},
-    ],
-    "Beginner": [
-      {"title": "Intro to Python", "instructor": "Angela Yu", "rating": 4.8, "students": "120,000"},
-      {"title": "HTML & CSS Basics", "instructor": "Jonas", "rating": 4.7, "students": "85,000"},
-    ],
-    "Intermediate": [
-      {"title": "Flutter Bootcamp", "instructor": "Maximilian", "rating": 4.6, "students": "97,000"},
-      {"title": "Modern JavaScript (ES6+)", "instructor": "Brad Traversy", "rating": 4.7, "students": "110,000"},
-    ],
-    "Advanced": [
-      {"title": "Advanced ML with TensorFlow", "instructor": "Andrew Ng", "rating": 4.9, "students": "200,000"},
-      {"title": "Scalable Node.js Architecture", "instructor": "Colt Steele", "rating": 4.8, "students": "140,000"},
-    ],
-  };
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
   }
 
-  Widget _courseCard(Map<String, dynamic> course) {
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Widget _courseCard(BuildContext context, Program program) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       elevation: 2,
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
-        leading: Container(width: 64, height: 64, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.play_circle_fill, color: Colors.deepPurple, size: 36)),
-        title: Text(course['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text('${course['instructor']} • ${course['rating']} ⭐ • ${course['students']}'),
-        trailing: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFC857)), child: const Text('Enroll', style: TextStyle(color: Colors.black87))),
-        onTap: () {
-          // navigate to details page when ready
-        },
+        leading: Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10),
+            image: program.imageUrl.isNotEmpty
+                ? DecorationImage(
+                    image: NetworkImage(program.imageUrl),
+                    fit: BoxFit.cover,
+                  )
+                : null,
+          ),
+          child: program.imageUrl.isEmpty
+              ? const Icon(Icons.play_circle_fill, color: Colors.deepPurple, size: 36)
+              : null,
+        ),
+        title: Text(program.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text('${program.instructor} • ${program.rating} ⭐ • ${program.students}'),
+        trailing: ElevatedButton(
+          onPressed: () => _enrollInProgram(context, program),
+          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFC857)),
+          child: const Text('Enroll', style: TextStyle(color: Colors.black87)),
+        ),
+        onTap: () => _showProgramDetails(context, program),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFFFAF0E6), Color(0xFFF5F7FF)], begin: Alignment.topLeft, end: Alignment.bottomRight)),
-        child: SafeArea(
-          child: Column(children: [
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12), child: Row(children: [
-              const CircleAvatar(radius: 26, backgroundColor: Colors.deepPurple, child: Icon(Icons.person, color: Colors.white)),
-              const SizedBox(width: 12),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [Text('Moshe Yagami', style: TextStyle(fontWeight: FontWeight.bold)), SizedBox(height: 4), Text('TempleOS evangelist', style: TextStyle(color: Colors.black54))]),
-              const Spacer(),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.add_circle_outline)),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.settings)),
-            ])),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: TextField(decoration: InputDecoration(prefixIcon: const Icon(Icons.search), hintText: 'Search for a programming language...', filled: true, fillColor: Colors.white, contentPadding: const EdgeInsets.symmetric(vertical: 14), border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none)))),
-            const SizedBox(height: 10),
-            TabBar(controller: _tabController, labelColor: Colors.black, unselectedLabelColor: Colors.grey, indicatorColor: const Color(0xFFFFC857), indicatorWeight: 3, tabs: const [Tab(text: 'All'), Tab(text: 'Beginner'), Tab(text: 'Intermediate'), Tab(text: 'Advanced')]),
-            Expanded(child: TabBarView(controller: _tabController, children: [
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12), child: ListView(children: courseData['All']!.map((c) => _courseCard(c)).toList())),
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12), child: ListView(children: courseData['Beginner']!.map((c) => _courseCard(c)).toList())),
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12), child: ListView(children: courseData['Intermediate']!.map((c) => _courseCard(c)).toList())),
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12), child: ListView(children: courseData['Advanced']!.map((c) => _courseCard(c)).toList())),
-            ])),
-          ]),
+  void _showProgramDetails(BuildContext context, Program program) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(program.title),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (program.imageUrl.isNotEmpty)
+                Container(
+                  height: 120,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    image: DecorationImage(
+                      image: NetworkImage(program.imageUrl),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 12),
+              Text('Instructor: ${program.instructor}'),
+              Text('Duration: ${program.duration}'),
+              Text('Level: ${program.level}'),
+              Text('Rating: ${program.rating} ⭐'),
+              Text('Students: ${program.students}'),
+              const SizedBox(height: 10),
+              Text(
+                program.description,
+                style: const TextStyle(fontSize: 14, color: Colors.black87),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _enrollInProgram(context, program);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFC857)),
+            child: const Text('Enroll Now', style: TextStyle(color: Colors.black87)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _enrollInProgram(BuildContext context, Program program) async {
+    final programProvider = Provider.of<ProgramProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(color: Color(0xFFFFC857)),
+            SizedBox(width: 16),
+            Text('Enrolling...'),
+          ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(type: BottomNavigationBarType.fixed, backgroundColor: Colors.white, selectedItemColor: const Color(0xFFFFC857), unselectedItemColor: Colors.grey, items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.menu_book_outlined), label: 'My Learning'),
-        BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Notifications'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
-      ]),
     );
+
+    try {
+      await programProvider.enrollInProgram(program.id);
+      
+      if (mounted) Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Successfully enrolled in ${program.title}'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to enroll: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ProgramProvider>(
+      builder: (context, programProvider, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('All Programs'),
+            backgroundColor: const Color(0xFFFFC857),
+          ),
+          body: Column(
+            children: [
+              TabBar(
+                controller: _tabController,
+                labelColor: Colors.black,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: const Color(0xFFFFC857),
+                indicatorWeight: 3,
+                tabs: const [
+                  Tab(text: 'All'),
+                  Tab(text: 'Beginner'),
+                  Tab(text: 'Intermediate'),
+                  Tab(text: 'Advanced'),
+                ],
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildResultList(programProvider.getProgramsByLevel('All')),
+                    _buildResultList(programProvider.getProgramsByLevel('Beginner')),
+                    _buildResultList(programProvider.getProgramsByLevel('Intermediate')),
+                    _buildResultList(programProvider.getProgramsByLevel('Advanced')),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildProgramList(List<Program> programs) {
+    if (programs.isEmpty) {
+      return const Center(
+        child: Text('No programs found for this level'),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+      children: programs.map((program) => _courseCard(context, program)).toList(),
+    );
+  }
+
+  // Fixed method - use the pattern that matches your Result class
+  Widget _buildResultList(Result<List<Program>> result) {
+    if (result.isSuccess) {
+      final programs = result.data!;
+      if (programs.isEmpty) {
+        return const Center(child: Text('No programs found for this level'));
+      }
+      return _buildProgramList(programs);
+    } else {
+      return Center(child: Text('Error: ${result.error}'));
+    }
   }
 }

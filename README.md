@@ -1,8 +1,24 @@
-BRAINLIT EXCELERATE MOBILE APPLICATION
+# BRAINLIT EXCELERATE MOBILE APPLICATION
 
 **📘 Excelerate Learning & Experience App Overview**
 
 BRAINLIT App is a Flutter-based mobile platform that connects learners to internships, workshops, job opportunities, and online courses. The app empowers students and professionals to gain real-world experience while providing admins and organizations with tools to manage, verify, and track opportunities efficiently.
+
+## 🆕 Recent Updates (October 23, 2025)
+
+### New Features
+- **Real Data Integration**: Programs now load from JSON data source
+- **Feedback System**: Added comprehensive feedback form with validation
+- **Settings**: New settings page with theme and language controls
+- **Enhanced UI**: Modern floating navigation and animated search
+-
+### Technical Improvements
+- Implemented state management with Provider
+- Added mock API service with error handling
+- Enhanced loading states and error messaging
+- Improved form validation and user feedback
+
+[View full changelog](CHANGELOG.md)
 
 This project is inspired by experiential learning platforms like Udemy, edX, and Coursera, but with a stronger focus on hands-on projects and industry collaboration.
 
